@@ -1,0 +1,30 @@
+{
+  "name": "linked-coldemail",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node ./src/main.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DPM97/linkedin-coldemail.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DPM97/linkedin-coldemail/issues"
+  },
+  "homepage": "https://github.com/DPM97/linkedin-coldemail#readme",
+  "dependencies": {
+    "@types/node": "^14.0.23",
+    "@types/request-promise": "^4.1.46",
+    "cheerio": "^1.0.0-rc.3",
+    "puppeteer": "^5.2.0",
+    "puppeteer-tsd": "0.0.2",
+    "request-promise": "^4.2.5",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
+  }
+}
