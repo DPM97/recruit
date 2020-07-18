@@ -4,8 +4,7 @@ import * as puppeteer from 'puppeteer';
 import { promises as fs } from 'fs'
 
 let companies: any = {
-    "Adobe": '',
-    "Google": ''
+    "Adobe": ''
 }
 
 let browser: any;
@@ -14,7 +13,7 @@ let page: any;
 const methods = {
     main: async () => {
 
-        browser = await puppeteer.launch({ headless: false })
+        browser = await puppeteer.launch({ headless: true })
         const cookies: any = JSON.parse(await fs.readFile('./cookies/cookies.json', 'utf8'));
         page = await browser.newPage()
         await page.setCookie(...cookies)
@@ -22,17 +21,17 @@ const methods = {
             width: 1500,
             height: 1200,
         });
-        
+
+        let acc: Array<string> = []
+
         for (const company of Object.keys(companies)) {
             companies[company] = await methods.fetchCompanyID(company)
             const pages: number = await methods.numPages(companies[company])
-            let acc: Array<string> = []
             for (let i: number = 1; i <= pages; i++) {
                 acc = await methods.getPageContents(company, companies[company], i, acc)
             }
-            console.log(acc)
         }
-        console.log(companies)
+        console.log(acc)
         
     },
     fetchCompanyID: async (company: String): Promise<String> => {
@@ -55,14 +54,16 @@ const methods = {
         const $: any = await cheerio.load(body)
         $('.search-result__result-link').each(async (i, e) => {
             let url = $(e).attr('href')
-            if (url != '#') {
-                users.push(`https://linkedin.com${url}`)
-            } else {
-                let element;
-                $('.search-result__truncate').filter((it, elem) => {
-                    if (it == i && i % 2 == 0) element = $(elem).text()
-                })
-                if (element) users.push(await methods.fetchFromGoogle(`${element} ${company} "linkedin"`))
+            if (!users.indexOf(`https://linkedin.com${url}`) || url == '#') {
+                if (url != '#') {
+                    users.push(`https://linkedin.com${url}`)
+                } else {
+                    let element;
+                    $('.search-result__truncate').filter((it, elem) => {
+                        if (it == i && i % 2 == 0) element = $(elem).text()
+                    })
+                    if (element) users.push(await methods.fetchFromGoogle(`${element} ${company} "linkedin"`))
+                }
             }
         })
         return users
@@ -79,7 +80,7 @@ const methods = {
         let data: Array<string> = []
         $('a[href]').filter((i, e) => {
             let url = $(e).attr('href')
-            if (url.includes('/url?q=https://www.linkedin.com')) data.push(url.slice(7).split('&')[0])
+            if (url.includes('/url?q=https://www.linkedin.com/in')) data.push(url.slice(7).split('&')[0])
         })
         return data[0]
     }
