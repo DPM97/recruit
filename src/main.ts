@@ -4,7 +4,7 @@ import * as puppeteer from 'puppeteer';
 import { promises as fs } from 'fs'
 
 let companies: any = {
-    "Adobe": ''
+    "Google": ''
 }
 
 let browser: any;
@@ -23,6 +23,7 @@ const methods = {
         });
 
         let acc: Array<string> = []
+        let emails: Array<string> = []
 
         for (const company of Object.keys(companies)) {
             companies[company] = await methods.fetchCompanyID(company)
@@ -30,8 +31,11 @@ const methods = {
             for (let i: number = 1; i <= pages; i++) {
                 acc = await methods.getPageContents(company, companies[company], i, acc)
             }
+            for (const e of acc) {
+                emails.concat(await methods.getEmail(e))
+            }
         }
-        console.log(acc)
+        console.log(emails)
         
     },
     fetchCompanyID: async (company: String): Promise<String> => {
@@ -54,16 +58,16 @@ const methods = {
         const $: any = await cheerio.load(body)
         $('.search-result__result-link').each(async (i, e) => {
             let url = $(e).attr('href')
-            if (!users.indexOf(`https://linkedin.com${url}`) || url == '#') {
-                if (url != '#') {
-                    users.push(`https://linkedin.com${url}`)
-                } else {
+            if (url == '#') {
+                                    /*
                     let element;
                     $('.search-result__truncate').filter((it, elem) => {
                         if (it == i && i % 2 == 0) element = $(elem).text()
                     })
                     if (element) users.push(await methods.fetchFromGoogle(`${element} ${company} "linkedin"`))
-                }
+                    */
+            } else if (users.indexOf(`https://linkedin.com${url}`) < 0) {
+                users.push(`https://linkedin.com${url}`)
             }
         })
         return users
@@ -83,6 +87,21 @@ const methods = {
             if (url.includes('/url?q=https://www.linkedin.com/in')) data.push(url.slice(7).split('&')[0])
         })
         return data[0]
+    },
+    getEmail: async (url: string): Promise<Array<string>> => {
+        console.log(url)
+        url = url.concat(`detail/contact-info/`)
+        await page.goto(url)
+        let emails: Array<string> = []
+        const body: string = await page.content()
+        const $: any = await cheerio.load(body)
+        $('.pv-contact-info__contact-link').each((i, e) => {
+            let href: string = $(e).attr('href')
+            if (href.startsWith('mailto:')) {
+                emails.push(href.replace('mailto:', ''))
+            }
+        })
+        return emails;
     }
 }
 
